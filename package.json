@@ -6,7 +6,7 @@
   "scripts": { "start": "node server.mjs", "test": "node --test" },
   "dependencies": {
     "@modelcontextprotocol/node": "2.1.0",
-    "@modelcontextprotocol/server": "2.2.0",
+    "@modelcontextprotocol/server": "2.4.0",
     "zod": "4.6.5"
   }
 }
