@@ -40,7 +40,7 @@ Use the committed lockfile rather than substituting SDK versions.
 Clone this repository (or your fork), and work from its root:
 
 ```sh
-git clone https://github.com/Azure-Samples/app-service-builder-mcp-server.git
+git clone https://github.com/AzureAppService/app-service-builder-mcp-server.git
 cd app-service-builder-mcp-server
 npm ci --ignore-scripts
 npm test
