@@ -39,9 +39,11 @@ not a live request.
   and resource group, and permission to select the source repository in the Portal.
   Use the environment and region approved for your preview access.
 
-The exact dependency pins are `@modelcontextprotocol/server` **2.2.0**,
-`@modelcontextprotocol/node` **2.1.0**, and `zod` **4.6.5**.
-Use the committed lockfile rather than substituting SDK versions.
+The direct dependencies are `@modelcontextprotocol/server`,
+`@modelcontextprotocol/node`, and `zod`. See [`package.json`](package.json)
+for their exact version pins and [`package-lock.json`](package-lock.json)
+for the complete locked dependency tree. Use `npm ci --ignore-scripts` with
+the committed lockfile rather than substituting SDK versions.
 
 ## Run locally
 
