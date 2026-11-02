@@ -23,6 +23,14 @@ App Service Builder preview environment before deploying. Local tests do not
 qualify a deployed route, another MCP client, or production use. This is an
 HTTP MCP endpoint, not a remote stdio bridge or native Builder agent orchestration.
 
+## Showcase preview
+
+The read-only showcase is available at `/demo`; the root route remains the
+original plain-text sample identifier. The tool example shown is illustrative,
+not a live request.
+
+![Desktop preview of the MCP server showcase at /demo, showing the text_length tool, example JSON-RPC request, and client connection link](https://github.com/user-attachments/assets/e725829c-7f76-44c9-afc3-6cb20334b9de)
+
 ## Prerequisites
 
 - Node.js **24.x** and npm (the runtime declared in `package.json` and `builder.yaml`).
