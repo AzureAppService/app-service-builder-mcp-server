@@ -143,7 +143,7 @@ and tool annotations do not grant permissions.
 
 ## Deploy from your own repository
 
-Follow the [App Service Builder MCP hosting guide](https://builderapps.azure.com/docs/guides/host-mcp-server/)
+Follow the [App Service Builder MCP hosting guide](https://builder.appservice.azure.com/docs/guides/host-mcp-server/)
 for your authorized preview environment. This sample does not install a Builder
 CLI or choose a deployment region for you.
 
@@ -213,6 +213,6 @@ do not put credentials or sensitive exploit details in a public issue.
 
 ## References
 
-- [App Service Builder MCP hosting guide](https://builderapps.azure.com/docs/guides/host-mcp-server/)
+- [App Service Builder MCP hosting guide](https://builder.appservice.azure.com/docs/guides/host-mcp-server/)
 - [Official MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
 - [MCP Streamable HTTP transport, protocol 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)
