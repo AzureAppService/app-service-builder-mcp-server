@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { randomUUID } from 'node:crypto';
 import { once } from 'node:events';
 import { accessSync, constants } from 'node:fs';
-import { mkdir, rm } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import test from 'node:test';
 
@@ -15,10 +15,9 @@ const executable = [process.env.CHROME_BIN,
   try { accessSync(path, constants.X_OK); return true; } catch { return false; }
 });
 
-/** Own a headless browser and repository-local profile; never attach to a user browser. */
+/** Own a headless browser and short profile path; never attach to a user browser. */
 export async function openBrowser(binary) {
-  const profile = fileURLToPath(new URL(`./.chrome-profile-${randomUUID()}/`, import.meta.url));
-  await mkdir(profile);
+  const profile = await mkdtemp(join(tmpdir(), 'mcp-chrome-'));
   const child = spawn(binary, [
     '--headless=new', '--no-sandbox', '--disable-gpu', '--no-first-run',
     '--no-default-browser-check', '--disable-background-networking',

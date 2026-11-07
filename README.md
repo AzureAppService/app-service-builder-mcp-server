@@ -200,7 +200,7 @@ The existing Ubuntu CI job also runs a dependency-free Chrome browser smoke
 through Node's native WebSocket and Chrome DevTools Protocol. Chrome is required
 in CI; locally, set `CHROME_BIN` to an installed Chromium-compatible executable
 to enable this test, otherwise only the browser test is skipped. The test owns
-an ephemeral loopback HTTP port, a headless browser, and a repository-local
+an ephemeral loopback HTTP port, a headless browser, and a short test-owned
 profile that it removes afterward; it never uses port 8080 or your browser profile.
 
 Hosted build/startup, HTTPS routing, platform authentication, and external-client
