@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { accessSync, constants } from 'node:fs';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -15,6 +15,51 @@ const executable = [process.env.CHROME_BIN,
   try { accessSync(path, constants.X_OK); return true; } catch { return false; }
 });
 
+export async function chromeEndpoint(child, profile, timeoutMs = 10_000) {
+  let stdout = '';
+  let stderr = '';
+  let spawnError;
+  let portFileState = 'not written';
+  const captureOut = (data) => { stdout = `${stdout}${data}`.slice(-8192); };
+  const captureErr = (data) => { stderr = `${stderr}${data}`.slice(-8192); };
+  const onError = (error) => { spawnError = error; };
+  child.stdout.on('data', captureOut);
+  child.stderr.on('data', captureErr);
+  child.on('error', onError);
+  const diagnostic = () => `exit=${child.exitCode}, signal=${child.signalCode}, `
+    + `DevToolsActivePort=${portFileState}\nstdout tail:\n${stdout || '(empty)'}`
+    + `\nstderr tail:\n${stderr || '(empty)'}`;
+  try {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      if (spawnError || child.exitCode !== null || child.signalCode !== null) {
+        throw new Error(`Chrome exited before startup: ${spawnError?.message ?? ''}\n${diagnostic()}`);
+      }
+      // Chrome's port-0 readiness file does not depend on a particular stderr announcement.
+      try {
+        const [port, target] = (await readFile(join(profile, 'DevToolsActivePort'), 'utf8')).trim().split(/\r?\n/);
+        portFileState = 'incomplete or invalid';
+        if (/^\d+$/.test(port) && Number(port) > 0 && Number(port) <= 65535
+          && /^\/devtools\/browser\/[a-zA-Z0-9-]+$/.test(target)) {
+          return `ws://127.0.0.1:${port}${target}`;
+        }
+      } catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+      }
+      const announcement = `${stderr}\n${stdout}`.match(/DevTools listening on (ws:\/\/127\.0\.0\.1:\d+\/\S+)/);
+      if (announcement) return announcement[1];
+      await delay(25);
+    }
+    throw new Error(`Chrome startup timed out after ${timeoutMs}ms\n${diagnostic()}`);
+  } finally {
+    child.stdout.off('data', captureOut);
+    child.stderr.off('data', captureErr);
+    child.off('error', onError);
+    child.stdout.resume();
+    child.stderr.resume();
+  }
+}
+
 /** Own a headless browser and short profile path; never attach to a user browser. */
 export async function openBrowser(binary) {
   const profile = await mkdtemp(join(tmpdir(), 'mcp-chrome-'));
@@ -25,7 +70,7 @@ export async function openBrowser(binary) {
     '--metrics-recording-only', '--no-pings', '--remote-debugging-address=127.0.0.1',
     '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank',
   ], {
-    stdio: ['ignore', 'ignore', 'pipe'],
+    stdio: ['ignore', 'pipe', 'pipe'],
     // A private process group keeps forced cleanup confined to this browser's helpers.
     detached: process.platform !== 'win32',
     env: { ...process.env, TMPDIR: profile, TMP: profile, TEMP: profile },
@@ -63,30 +108,7 @@ export async function openBrowser(binary) {
     }
   };
   try {
-    const endpoint = await new Promise((resolve, reject) => {
-      let output = '';
-      const finish = (error, value) => {
-        clearTimeout(timer);
-        child.stderr.off('data', onData);
-        child.off('error', onError);
-        child.off('exit', onExit);
-        if (error) reject(error);
-        else resolve(value);
-      };
-      const timer = setTimeout(() => finish(new Error('Chrome startup timed out')), 10_000);
-      const onData = (data) => {
-        output = `${output}${data}`.slice(-8192);
-        const match = output.match(/DevTools listening on (ws:\/\/127\.0\.0\.1:\d+\/\S+)/);
-        if (match) finish(null, match[1]);
-      };
-      const onError = (error) => finish(error);
-      const onExit = () => finish(new Error(`Chrome exited before startup: ${output}`));
-      child.stderr.on('data', onData);
-      child.once('error', onError);
-      child.once('exit', onExit);
-      // Keep draining stderr after discovery so Chrome cannot block on a full pipe.
-      child.stderr.on('data', () => {});
-    });
+    const endpoint = await chromeEndpoint(child, profile);
     const address = new URL(endpoint);
     const targets = await (await fetch(`http://${address.host}/json/list`, {
       signal: AbortSignal.timeout(5000),
