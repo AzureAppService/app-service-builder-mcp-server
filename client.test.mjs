@@ -55,7 +55,10 @@ for (const env of [{}, { APP_API_TOKEN: 'synthetic-short-token' }]) {
     const health = await fetch(`${origin}/health`);
     assert.equal(health.status, 200);
     assert.equal(await health.text(), 'OK\n');
-    assert.equal(await (await fetch(origin)).text(), 'App Service Builder / mcp-server\n');
+    const home = await fetch(origin);
+    assert.equal(home.status, 200);
+    assert.equal(home.headers.get('content-type'), 'text/html; charset=utf-8');
+    assert.match(await home.text(), /Expected result, not a live request/);
     await assert.rejects(client(origin), { code: 1, stderr: /HTTP 503/ });
   });
 }

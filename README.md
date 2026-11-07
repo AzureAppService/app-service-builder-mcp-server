@@ -25,11 +25,10 @@ HTTP MCP endpoint, not a remote stdio bridge or native Builder agent orchestrati
 
 ## Showcase preview
 
-The read-only showcase is available at `/demo`; the root route remains the
-original plain-text sample identifier. The tool example shown is illustrative,
-not a live request.
+The read-only showcase is the home page at `/`, served directly as HTML.
+The tool example shown is illustrative, not a live request.
 
-![Desktop preview of the MCP server showcase at /demo, showing the text_length tool, example JSON-RPC request, and client connection link](https://github.com/user-attachments/assets/e725829c-7f76-44c9-afc3-6cb20334b9de)
+![Desktop preview of the MCP server showcase, showing the text_length tool, example JSON-RPC request, and client connection link](https://github.com/user-attachments/assets/e725829c-7f76-44c9-afc3-6cb20334b9de)
 
 ## Prerequisites
 
@@ -72,7 +71,7 @@ curl --fail http://127.0.0.1:8080/health
 
 The expected body is `OK`. Liveness is deliberately unauthenticated and does
 **not** prove that app authentication is configured or that a tool can be called.
-Open `http://127.0.0.1:8080/demo` for a responsive, read-only showcase of the
+Open `http://127.0.0.1:8080/` for a responsive, read-only showcase of the
 tool, an illustrative JSON-RPC call, the route contract, and client setup.
 It does not send MCP requests, collect credentials, or report live tool status.
 The page uses local HTML/CSS with no external assets or additional dependencies;
@@ -111,8 +110,7 @@ trap - EXIT
 |---|---|
 | `APP_API_TOKEN` | Required for `POST /mcp`; at least 32 characters. The `Authorization` header must use the `Bearer` scheme with this exact token; comparison is timing-safe for equal-length values. |
 | `PUBLIC_ORIGIN` | Optional exact HTTPS origin, without a trailing slash, allowed when a client supplies `Origin`. Invalid configuration prevents startup. |
-| `GET /` | Public sample identifier: `App Service Builder / mcp-server`. |
-| `GET /demo` | Public, informational HTML showcase; examples are static, not live MCP calls. |
+| `GET /` | Public HTML showcase, served directly without a redirect; examples are static, not live MCP calls. Query strings leave the HTML response unchanged. |
 | `GET /health` | Public `200` with `OK` body; liveness only. |
 | `POST /mcp` | JSON-RPC over stateless Streamable HTTP, with an 8192-byte request-body limit and JSON responses. Each request owns a fresh SDK server and transport. |
 | `text_length` | Accepts text of at most 1000 UTF-16 code units and counts Unicode code points. No file, network, or state access. |
@@ -125,6 +123,11 @@ non-JSON content type receive `415`, malformed JSON receives `400`, and oversize
 bodies receive `413`. Root and health remain public unless an untrusted Origin
 is supplied. No CORS access is granted; the included client is a server-side Node
 client, not a browser integration.
+
+`index.html` contains the home page's local HTML/CSS. There is no separate
+showcase route or plain-text identifier endpoint. Only `GET` serves the page;
+other methods and unknown paths return `404`. Health and MCP routes retain
+their exact paths, without query strings.
 
 Only POST request/response behavior is demonstrated: **no SSE streaming, session
 state, resumability, session affinity, or long-lived workload support** is
@@ -189,8 +192,9 @@ unset APP_API_TOKEN MCP_URL PLATFORM_ACCESS_TOKEN PUBLIC_ORIGIN
 
 `npm test` uses Node's built-in test runner. Tests cover local HTTP
 initialize/list/call, bounded Unicode input, fail-closed authentication,
-Origin validation, malformed/oversized input, health, ordinary reverse-proxy
-headers, and the included client. CI runs the same tests on Node 24.
+Origin validation, malformed/oversized input, root HTML and removed-route 404s,
+health, ordinary reverse-proxy headers, and the included client. CI runs the
+same tests on Node 24.
 Hosted build/startup, HTTPS routing, platform authentication, and external-client
 compatibility still require separate validation in your authorized preview.
 

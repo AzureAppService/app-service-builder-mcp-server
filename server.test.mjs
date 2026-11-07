@@ -3,6 +3,7 @@ import test from 'node:test';
 import { once } from 'node:events';
 import { createApp } from './server.mjs';
 import { request as httpRequest } from 'node:http';
+import { readFileSync } from 'node:fs';
 
 const token = 'local-test-token-'.repeat(3);
 async function fixture(t, env = { APP_API_TOKEN: token }) {
@@ -29,26 +30,36 @@ const headers = {
   Accept: 'application/json, text/event-stream', 'MCP-Protocol-Version': '2025-11-25',
 };
 
-test('public demo is informational HTML and preserves existing route contracts', async (t) => {
+test('public root serves the actual informational HTML and preserves protocol boundaries', async (t) => {
   const request = await fixture(t, {});
-  for (const path of ['/demo', '/demo?scoutTheme=dark']) {
+  for (const path of ['/', '/?scoutTheme=dark', '/?scoutTheme=light&check=1']) {
     const response = await request(path);
     assert.equal(response.status, 200);
     assert.match(response.headers.get('content-type'), /text\/html; charset=utf-8/);
     assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
+    assert.equal(response.headers.get('referrer-policy'), 'no-referrer');
+    assert.equal(response.headers.get('location'), null);
     const html = await response.text();
+    assert.equal(html, readFileSync(new URL('./index.html', import.meta.url), 'utf8'));
     assert.match(html, /<html lang="en">/);
     assert.match(html, /text_length/);
     assert.match(html, /Expected result, not a live request/);
     assert.match(html, /node client\.mjs/);
+    assert.match(html, /href="\/health"/);
+    assert.doesNotMatch(html, /\/demo|plain-text greeting|sample identifier/);
     assert.doesNotMatch(html, /<script[^>]+src=|fetch\(|XMLHttpRequest/);
   }
-  assert.equal(await (await request('/')).text(), 'App Service Builder / mcp-server\n');
   assert.equal(await (await request('/health')).text(), 'OK\n');
   assert.equal((await request('/mcp', { method: 'POST' })).status, 503);
-  assert.equal((await request('/demo', { method: 'POST' })).status, 404);
-  assert.equal((await request('/demo/', {})).status, 404);
-  assert.equal((await request('/demo', { headers: { Origin: 'https://evil.example' } })).status, 403);
+  for (const path of ['/demo', '/demo/', '/demo/index.php', '/demo?scoutTheme=dark',
+    '/demo/missing', '/demo.html', '/index.html', '/missing', '/health?check=1', '/mcp?check=1']) {
+    assert.equal((await request(path)).status, 404, path);
+  }
+  for (const method of ['POST', 'HEAD', 'DELETE']) {
+    assert.equal((await request('/', { method })).status, 404, method);
+    assert.equal((await request('/demo', { method })).status, 404, method);
+  }
+  assert.equal((await request('/', { headers: { Origin: 'https://evil.example' } })).status, 403);
 });
 
 test('HTTP initialize, initialized, list and bounded read-only call work without sessions', async (t) => {
