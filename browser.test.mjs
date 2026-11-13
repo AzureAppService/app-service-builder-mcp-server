@@ -232,11 +232,12 @@ test('Chrome renders the actual root and preserves navigation and HTTP boundarie
   });
   assert.equal(await evaluate(browser, 'document.documentElement.scrollWidth <= innerWidth'), true);
 
-  await evaluate(browser, `document.querySelector('a[href="/health"]').focus()`);
+  await evaluate(browser, `document.querySelector('[data-health-check]').focus()`);
   await enter(browser);
-  await waitFor(browser, `location.pathname === '/health' && document.readyState === 'complete'`);
-  assert.equal(await evaluate(browser, 'document.body.textContent'), 'OK\n');
-  assert.equal(documents.at(-1)?.status, 200);
+  await waitFor(browser, `document.querySelector('#health-status').textContent.startsWith('Healthy:')`);
+  assert.equal(await evaluate(browser, 'location.pathname'), '/');
+  assert.equal(await evaluate(browser, `document.querySelector('[data-health-check]').disabled`), false);
+  assert.match(await evaluate(browser, `document.querySelector('#health-status').textContent`), /Does not verify authentication/);
   const removed = await fetch(`${origin}/demo`, {
     redirect: 'manual', signal: AbortSignal.timeout(5000),
   });

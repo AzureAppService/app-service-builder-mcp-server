@@ -22,6 +22,10 @@ FORM: Brief-directed developer workbench; static, read-only and dependency-free.
     })();
   </script>
   <style>
+    button.secondary { font: inherit; color: inherit; background: transparent; border: 0; padding: 12px 0; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
+    button.secondary:focus-visible { outline: 3px solid var(--cp-accent); outline-offset: 5px; }
+    button.secondary:disabled { cursor: wait; opacity: .7; }
+    #health-status { font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
     :root {
       color-scheme: light;
       --cp-bg: #f7f4ef;
@@ -171,8 +175,9 @@ FORM: Brief-directed developer workbench; static, read-only and dependency-free.
           <p class="lead">An HTTP MCP server you can inspect end to end. One read-only tool. Bounded input. No file, network, or state access.</p>
           <div class="actions">
             <a class="button" href="#connect">Connect a client <span aria-hidden="true">&#8594;</span></a>
-            <a class="secondary" href="/health">Check liveness</a>
+            <button class="secondary" type="button" data-health-check data-health-path="/health">Check server liveness</button>
           </div>
+          <p id="health-status" role="status" aria-live="polite">Checks public liveness only, not authentication or the MCP tool.</p>
         </div>
         <section class="specimen" aria-labelledby="tool-name">
           <div class="specimen-head"><code>POST /mcp</code><span>Illustrative tool call</span></div>
@@ -220,5 +225,23 @@ FORM: Brief-directed developer workbench; static, read-only and dependency-free.
     </main>
     <footer><span>HTTP MCP server / Node.js 24</span><span>Private Preview &middot; Development and test only</span></footer>
   </div>
+  <script>
+    const button = document.querySelector('[data-health-check]');
+    const status = document.querySelector('#health-status');
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      status.textContent = 'Checking server liveness...';
+      try {
+        const response = await fetch('/health', { cache: 'no-store', signal: AbortSignal.timeout(5000) });
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        if ((await response.text()).trim() !== 'OK') throw new Error('Unexpected health response');
+        status.textContent = 'Healthy: /health returned HTTP 200 and OK. Does not verify authentication or MCP tool calls.';
+      } catch (error) {
+        status.textContent = 'Health check failed: ' + error.message + '. Retry the check.';
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
 </body>
 </html>

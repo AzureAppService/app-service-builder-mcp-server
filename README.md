@@ -28,7 +28,12 @@ HTTP MCP endpoint, not a remote stdio bridge or native Builder agent orchestrati
 The read-only showcase is the home page at `/`, served directly as HTML.
 The tool example shown is illustrative, not a live request.
 
-![Desktop preview of the MCP server showcase, showing the text_length tool, example JSON-RPC request, and client connection link](https://github.com/user-attachments/assets/e725829c-7f76-44c9-afc3-6cb20334b9de)
+![MCP root guide with text_length protocol example, client setup link, and in-page public liveness check](docs/images/sample.png)
+
+Real local rendering in Microsoft Edge, not evidence of an Azure deployment.
+**Check server liveness** displays the public `/health` response here; it does
+not verify authentication or execute an MCP tool. The machine endpoint and
+authenticated `/mcp` protocol are unchanged.
 
 ## Prerequisites
 

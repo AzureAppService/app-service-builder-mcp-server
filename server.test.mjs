@@ -45,9 +45,11 @@ test('public root serves the actual informational HTML and preserves protocol bo
     assert.match(html, /text_length/);
     assert.match(html, /Expected result, not a live request/);
     assert.match(html, /node client\.mjs/);
-    assert.match(html, /href="\/health"/);
+    assert.match(html, /data-health-path="\/health"/);
+    assert.match(html, /id="health-status" role="status"/);
     assert.doesNotMatch(html, /\/demo|plain-text greeting|sample identifier/);
-    assert.doesNotMatch(html, /<script[^>]+src=|fetch\(|XMLHttpRequest/);
+    assert.doesNotMatch(html, /<script[^>]+src=|XMLHttpRequest/);
+    assert.deepEqual([...html.matchAll(/fetch\('([^']+)'/g)].map(match => match[1]), ['/health']);
   }
   assert.equal(await (await request('/health')).text(), 'OK\n');
   assert.equal((await request('/mcp', { method: 'POST' })).status, 503);
