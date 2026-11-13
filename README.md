@@ -221,3 +221,5 @@ do not put credentials or sensitive exploit details in a public issue.
 - [App Service Builder MCP hosting guide](https://builder.appservice.azure.com/docs/guides/host-mcp-server/)
 - [Official MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
 - [MCP Streamable HTTP transport, protocol 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)
+
+The product mark uses the supplied App Service Builder asset in `assets/AppServiceBuilder.svg`. Its SVG is inlined in the root page to preserve the existing routes and security policy. Keep the inline copy and asset in sync when updating the logo.
