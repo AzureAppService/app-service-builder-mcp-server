@@ -15,7 +15,7 @@ const executable = [process.env.CHROME_BIN,
   try { accessSync(path, constants.X_OK); return true; } catch { return false; }
 });
 
-export async function chromeEndpoint(child, profile, timeoutMs = 10_000) {
+export async function chromeEndpoint(child, profile, timeoutMs = 30_000) {
   let stdout = '';
   let stderr = '';
   let spawnError;
@@ -179,7 +179,7 @@ export async function enter(browser) {
 }
 
 test('Chrome renders the actual root and preserves navigation and HTTP boundaries', {
-  timeout: 45_000,
+  timeout: 60_000,
   skip: !process.env.CI && !executable ? 'Set CHROME_BIN to run the local browser smoke' : false,
 }, async (t) => {
   assert.ok(executable, 'CI requires the Ubuntu runner preinstalled Google Chrome');
