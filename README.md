@@ -28,12 +28,15 @@ HTTP MCP endpoint, not a remote stdio bridge or native Builder agent orchestrati
 The read-only showcase is the home page at `/`, served directly as HTML.
 The tool example shown is illustrative, not a live request.
 
-![MCP root guide with text_length protocol example, client setup link, and in-page public liveness check](docs/images/sample.png)
+![Daylight MCP root guide with official protocol logo, text_length example, configuration disclosure, and inline public liveness check](docs/images/sample.png)
 
 Real local rendering in Microsoft Edge, not evidence of an Azure deployment.
 **Check server liveness** displays the public `/health` response here; it does
 not verify authentication or execute an MCP tool. The machine endpoint and
-authenticated `/mcp` protocol are unchanged.
+authenticated `/mcp` protocol are unchanged. Failed checks stay inline and the
+same control retries. MCP documentation is separate from Builder documentation;
+setup links explicitly identify the upstream README, not your fork. The
+configuration disclosure names `APP_API_TOKEN` and `PUBLIC_ORIGIN` from `server.mjs`.
 
 ## Prerequisites
 
@@ -221,3 +224,9 @@ do not put credentials or sensitive exploit details in a public issue.
 - [App Service Builder MCP hosting guide](https://builder.appservice.azure.com/docs/guides/host-mcp-server/)
 - [Official MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
 - [MCP Streamable HTTP transport, protocol 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)
+
+The product mark uses the supplied App Service Builder asset in `assets/AppServiceBuilder.svg`. Its SVG is inlined in the root page to preserve the existing routes and security policy. Keep the inline copy and asset in sync when updating the logo.
+
+Official ecosystem logo sources and trademark notices are documented in
+[assets/NOTICE.md](assets/NOTICE.md). Artwork is stored locally and inlined;
+no remote image or font requests are needed to render the root page.

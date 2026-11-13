@@ -238,6 +238,17 @@ test('Chrome renders the actual root and preserves navigation and HTTP boundarie
   assert.equal(await evaluate(browser, 'location.pathname'), '/');
   assert.equal(await evaluate(browser, `document.querySelector('[data-health-check]').disabled`), false);
   assert.match(await evaluate(browser, `document.querySelector('#health-status').textContent`), /Does not verify authentication/);
+  await browser.call('Network.setBlockedURLs', { urls: [`${origin}/health`] });
+  await evaluate(browser, `document.querySelector('[data-health-check]').focus()`);
+  await enter(browser);
+  await waitFor(browser, `document.querySelector('#health-status').textContent.startsWith('Health check failed:')`);
+  assert.match(await evaluate(browser, `document.querySelector('#health-status').textContent`), /Retry the check/);
+  assert.equal(await evaluate(browser, `document.querySelector('[data-health-check]').disabled`), false);
+  await browser.call('Network.setBlockedURLs', { urls: [] });
+  await evaluate(browser, `document.querySelector('[data-health-check]').focus()`);
+  await enter(browser);
+  await waitFor(browser, `document.querySelector('#health-status').textContent.startsWith('Healthy:')`);
+  assert.equal(await evaluate(browser, 'location.pathname'), '/');
   const removed = await fetch(`${origin}/demo`, {
     redirect: 'manual', signal: AbortSignal.timeout(5000),
   });
